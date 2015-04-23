@@ -16,7 +16,9 @@ import exceptions.ResourceNotFoundException;
 public class UserController {
 	
 	@Autowired
-	UserService userService;
+	private UserService userService;
+	@Autowired
+	private Location location;
 
 	@RequestMapping(value = "/{id}", method = RequestMethod.GET)
 	public User read(@PathVariable("id") Integer id) {
@@ -32,7 +34,7 @@ public class UserController {
 		if (aUser == null)
 			throw new ResourceNotFoundException();
 		
-		aUser.setLocation(new Location(aUser.getMunicipalityId()));
+		aUser.setLocation(location.build(aUser.getMunicipalityId()));
 		return aUser;
 	}
 }

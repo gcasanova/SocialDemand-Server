@@ -1,21 +1,33 @@
 package app.domain.entities;
 
-import java.io.Serializable;
+import java.util.EnumSet;
+import java.util.HashSet;
+import java.util.Set;
 
+import javax.persistence.CascadeType;
 import javax.persistence.Column;
 import javax.persistence.Entity;
+import javax.persistence.FetchType;
 import javax.persistence.Id;
+import javax.persistence.OneToMany;
 import javax.persistence.Table;
 import javax.persistence.Transient;
 
+import org.springframework.security.core.userdetails.UserDetails;
+
+import security.UserAuthority;
+import security.UserRole;
 import app.domain.entities.location.Location;
 
 import com.fasterxml.jackson.annotation.JsonIgnore;
+import com.fasterxml.jackson.annotation.JsonInclude;
+import com.fasterxml.jackson.annotation.JsonInclude.Include;
 import com.fasterxml.jackson.annotation.JsonProperty;
 
 @Entity
 @Table(name = "users")
-public class User implements Serializable {
+@JsonInclude(Include.NON_NULL)
+public class User implements UserDetails {
 	private static final long serialVersionUID = -947757741988164699L;
 	
 	private Integer id;
@@ -25,6 +37,13 @@ public class User implements Serializable {
 	private String document; // official identification document
 	private String password;
 	private Integer municipalityId;
+	
+	private String newPassword;
+	private boolean accountLocked;
+	private boolean accountExpired;
+	private boolean accountEnabled;
+	private boolean credentialsExpired;
+	private Set<UserAuthority> authorities;
 	
 	private Location location; // transient property populated when appropriate
 	
@@ -71,6 +90,7 @@ public class User implements Serializable {
 		this.document = document;
 	}
 	
+	@Override
 	@JsonIgnore
 	public String getPassword() {
 		return password;
@@ -78,6 +98,16 @@ public class User implements Serializable {
 	@JsonProperty
 	public void setPassword(String password) {
 		this.password = password;
+	}
+	
+	@JsonIgnore
+	public String getNewPassword() {
+		return newPassword;
+	}
+
+	@JsonProperty
+	public void setNewPassword(String newPassword) {
+		this.newPassword = newPassword;
 	}
 	
 	@JsonProperty
@@ -96,5 +126,82 @@ public class User implements Serializable {
 	}
 	public void setLocation(Location location) {
 		this.location = location;
+	}
+	
+	////// SECURITY RELATED //////
+	
+	@Override
+	@JsonIgnore
+	@OneToMany(cascade = CascadeType.ALL, mappedBy = "user", fetch = FetchType.EAGER, orphanRemoval = true)
+	public Set<UserAuthority> getAuthorities() {
+		return authorities;
+	}
+
+	// Use Roles as external API
+	public Set<UserRole> getRoles() {
+		Set<UserRole> roles = EnumSet.noneOf(UserRole.class);
+		if (authorities != null) {
+			for (UserAuthority authority : authorities) {
+				roles.add(UserRole.valueOf(authority));
+			}
+		}
+		return roles;
+	}
+
+	public void setRoles(Set<UserRole> roles) {
+		for (UserRole role : roles) {
+			grantRole(role);
+		}
+	}
+
+	public void grantRole(UserRole role) {
+		if (authorities == null) {
+			authorities = new HashSet<UserAuthority>();
+		}
+		authorities.add(role.asAuthorityFor(this));
+	}
+
+	public void revokeRole(UserRole role) {
+		if (authorities != null) {
+			authorities.remove(role.asAuthorityFor(this));
+		}
+	}
+
+	public boolean hasRole(UserRole role) {
+		return authorities.contains(role.asAuthorityFor(this));
+	}
+
+	@Override
+	@JsonIgnore
+	public boolean isAccountNonExpired() {
+		return !accountExpired;
+	}
+
+	@Override
+	@JsonIgnore
+	public boolean isAccountNonLocked() {
+		return !accountLocked;
+	}
+
+	@Override
+	@JsonIgnore
+	public boolean isCredentialsNonExpired() {
+		return !credentialsExpired;
+	}
+
+	@Override
+	@JsonIgnore
+	public boolean isEnabled() {
+		return !accountEnabled;
+	}
+
+	@Override
+	public String toString() {
+		return getClass().getSimpleName() + ": " + getUsername();
+	}
+
+	@Override
+	public String getUsername() {
+		return email;
 	}
 }

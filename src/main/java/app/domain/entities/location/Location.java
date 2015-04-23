@@ -26,14 +26,6 @@ public class Location implements Serializable {
 	private Province province;
 	private Municipality municipality;
 	
-	public Location(){};
-	
-	public Location(Integer municipalityId) {
-		municipality = this.municipalityService.getMunicipality(municipalityId);
-		province = this.provinceService.getProvince(municipality.getProvinceId());
-		region = this.regionService.getRegion(province.getRegionId());
-	}
-	
 	@JsonProperty
 	public Region getRegion() {
 		return region;
@@ -58,5 +50,11 @@ public class Location implements Serializable {
 		this.municipality = municipality;
 	}
 	
-	
+	public Location build(Integer municipalityId) {
+		municipality = this.municipalityService.getMunicipality(municipalityId);
+		province = this.provinceService.getProvince(municipality.getProvinceId());
+		region = this.regionService.getRegion(province.getRegionId());
+		
+		return this;
+	}
 }
