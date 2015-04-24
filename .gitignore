@@ -74,3 +74,4 @@ local.properties
 .springBeans
 
 src/main/resources/application.properties
+src/main/resources/keys/private-key.der

@@ -1,4 +1,4 @@
-package security.config.filters;
+package app.security.config.filters;
 
 import java.io.IOException;
 
@@ -11,7 +11,7 @@ import javax.servlet.http.HttpServletRequest;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.web.filter.GenericFilterBean;
 
-import security.service.TokenAuthenticationService;
+import app.security.service.TokenAuthenticationService;
 
 public class StatelessAuthenticationFilter extends GenericFilterBean {
 

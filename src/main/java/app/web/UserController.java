@@ -8,8 +8,8 @@ import org.springframework.web.bind.annotation.RestController;
 
 import app.domain.entities.User;
 import app.domain.entities.location.Location;
+import app.exceptions.ResourceNotFoundException;
 import app.service.UserService;
-import exceptions.ResourceNotFoundException;
 
 @RestController
 @RequestMapping("/user")

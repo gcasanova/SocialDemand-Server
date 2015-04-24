@@ -15,9 +15,9 @@ import javax.persistence.Transient;
 
 import org.springframework.security.core.userdetails.UserDetails;
 
-import security.UserAuthority;
-import security.UserRole;
 import app.domain.entities.location.Location;
+import app.security.UserAuthority;
+import app.security.UserRole;
 
 import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.fasterxml.jackson.annotation.JsonInclude;
@@ -100,11 +100,11 @@ public class User implements UserDetails {
 		this.password = password;
 	}
 	
+	@Transient
 	@JsonIgnore
 	public String getNewPassword() {
 		return newPassword;
 	}
-
 	@JsonProperty
 	public void setNewPassword(String newPassword) {
 		this.newPassword = newPassword;
@@ -136,8 +136,11 @@ public class User implements UserDetails {
 	public Set<UserAuthority> getAuthorities() {
 		return authorities;
 	}
-
-	// Use Roles as external API
+	public void setAuthorities(Set<UserAuthority> authorities) {
+		this.authorities = authorities;
+	}
+	
+	@Transient // Use Roles as external API
 	public Set<UserRole> getRoles() {
 		Set<UserRole> roles = EnumSet.noneOf(UserRole.class);
 		if (authorities != null) {
@@ -147,7 +150,6 @@ public class User implements UserDetails {
 		}
 		return roles;
 	}
-
 	public void setRoles(Set<UserRole> roles) {
 		for (UserRole role : roles) {
 			grantRole(role);
@@ -160,36 +162,38 @@ public class User implements UserDetails {
 		}
 		authorities.add(role.asAuthorityFor(this));
 	}
-
 	public void revokeRole(UserRole role) {
 		if (authorities != null) {
 			authorities.remove(role.asAuthorityFor(this));
 		}
 	}
-
 	public boolean hasRole(UserRole role) {
 		return authorities.contains(role.asAuthorityFor(this));
 	}
 
 	@Override
+	@Transient
 	@JsonIgnore
 	public boolean isAccountNonExpired() {
 		return !accountExpired;
 	}
-
+	
 	@Override
+	@Transient
 	@JsonIgnore
 	public boolean isAccountNonLocked() {
 		return !accountLocked;
 	}
 
 	@Override
+	@Transient
 	@JsonIgnore
 	public boolean isCredentialsNonExpired() {
 		return !credentialsExpired;
 	}
 
 	@Override
+	@Transient
 	@JsonIgnore
 	public boolean isEnabled() {
 		return !accountEnabled;
@@ -201,6 +205,8 @@ public class User implements UserDetails {
 	}
 
 	@Override
+	@Transient
+	@JsonIgnore
 	public String getUsername() {
 		return email;
 	}

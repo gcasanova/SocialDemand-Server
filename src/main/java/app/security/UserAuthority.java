@@ -1,10 +1,10 @@
-package security;
+package app.security;
 
 import javax.persistence.Entity;
-import javax.persistence.FetchType;
 import javax.persistence.Id;
-import javax.persistence.IdClass;
+import javax.persistence.JoinColumn;
 import javax.persistence.ManyToOne;
+import javax.persistence.Table;
 import javax.validation.constraints.NotNull;
 
 import org.springframework.security.core.GrantedAuthority;
@@ -14,33 +14,39 @@ import app.domain.entities.User;
 import com.fasterxml.jackson.annotation.JsonIgnore;
 
 @Entity
-@IdClass(UserAuthority.class)
+@Table(name="authorities")
 public class UserAuthority implements GrantedAuthority {
 	private static final long serialVersionUID = 3376884643901069882L;
 
-	@Id
-	@NotNull
-	@JsonIgnore
-	@ManyToOne(fetch = FetchType.LAZY)
+	private Integer id;
 	private User user;
-
-	@Id
-	@NotNull
 	private String authority;
 
+	@Id
+	@JsonIgnore
+	public Integer getId() {
+		return id;
+	}
+	public void setId(Integer id) {
+		this.id = id;
+	}
+	
+	@NotNull
+	@ManyToOne
+	@JsonIgnore
+	@JoinColumn(name="user_Id")
 	public User getUser() {
 		return user;
 	}
-
 	public void setUser(User user) {
 		this.user = user;
 	}
 
+	@NotNull
 	@Override
 	public String getAuthority() {
 		return authority;
 	}
-
 	public void setAuthority(String authority) {
 		this.authority = authority;
 	}

@@ -1,4 +1,4 @@
-package security;
+package app.security;
 
 import app.domain.entities.User;
 
@@ -14,10 +14,10 @@ public enum UserRole {
 
 	public static UserRole valueOf(final UserAuthority authority) {
 		switch (authority.getAuthority()) {
-		case "ROLE_USER":
-			return USER;
-		case "ROLE_ADMIN":
-			return ADMIN;
+			case "ROLE_USER":
+				return USER;
+			case "ROLE_ADMIN":
+				return ADMIN;
 		}
 		throw new IllegalArgumentException("No role defined for authority: " + authority.getAuthority());
 	}

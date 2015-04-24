@@ -1,6 +1,7 @@
 USE `appdb`;
 
 /* Dropping tables */
+DROP TABLE IF EXISTS `authorities`;
 DROP TABLE IF EXISTS `users`;
 DROP TABLE IF EXISTS `provinces`;
 DROP TABLE IF EXISTS `regions`;
@@ -19,6 +20,15 @@ CREATE TABLE `users` (
   UNIQUE KEY `IDX_email` (`email`),
   UNIQUE KEY `IDX_phone` (`phone`),
   UNIQUE KEY `IDX_document` (`document`)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8 COLLATE=utf8_spanish_ci;
+
+CREATE TABLE `authorities` (
+      `id` INT unsigned NOT NULL AUTO_INCREMENT,
+      `user_id` INT unsigned NOT NULL,
+      `authority` varchar(50) NOT NULL,
+       PRIMARY KEY (`id`),
+       UNIQUE KEY `IDX_user_authority` (`user_id`,`authority`),
+       CONSTRAINT `FK_authorities_users` foreign key(user_id) references users(id)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8 COLLATE=utf8_spanish_ci;
 
 /* Table structure for table `regions` */

@@ -1,4 +1,4 @@
-package security.config.filters;
+package app.security.config.filters;
 
 import java.io.IOException;
 
@@ -15,10 +15,10 @@ import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.security.web.authentication.AbstractAuthenticationProcessingFilter;
 import org.springframework.security.web.util.matcher.AntPathRequestMatcher;
 
-import security.UserAuthentication;
-import security.service.TokenAuthenticationService;
-import security.service.UserDetailsService;
 import app.domain.entities.User;
+import app.security.UserAuthentication;
+import app.security.service.TokenAuthenticationService;
+import app.security.service.UserDetailsService;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 

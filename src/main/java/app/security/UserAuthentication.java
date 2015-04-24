@@ -1,4 +1,4 @@
-package security;
+package app.security;
 
 import java.util.Collection;
 
@@ -19,7 +19,7 @@ public class UserAuthentication implements Authentication {
 
 	@Override
 	public String getName() {
-		return user.getName();
+		return user.getEmail();
 	}
 
 	@Override

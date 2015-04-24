@@ -1,4 +1,4 @@
-package security.service;
+package app.security.service;
 
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
@@ -7,9 +7,9 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.security.core.Authentication;
 import org.springframework.stereotype.Service;
 
-import security.TokenHandler;
-import security.UserAuthentication;
 import app.domain.entities.User;
+import app.security.TokenHandler;
+import app.security.UserAuthentication;
 
 @Service
 public class TokenAuthenticationService {

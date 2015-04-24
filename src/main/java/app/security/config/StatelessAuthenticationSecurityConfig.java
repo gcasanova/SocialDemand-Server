@@ -1,4 +1,4 @@
-package security.config;
+package app.security.config;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.Bean;
@@ -13,10 +13,10 @@ import org.springframework.security.config.annotation.web.configuration.WebSecur
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.security.web.authentication.UsernamePasswordAuthenticationFilter;
 
-import security.config.filters.StatelessAuthenticationFilter;
-import security.config.filters.StatelessLoginFilter;
-import security.service.TokenAuthenticationService;
-import security.service.UserDetailsService;
+import app.security.config.filters.StatelessAuthenticationFilter;
+import app.security.config.filters.StatelessLoginFilter;
+import app.security.service.TokenAuthenticationService;
+import app.security.service.UserDetailsService;
 
 @Order(1)
 @Configuration

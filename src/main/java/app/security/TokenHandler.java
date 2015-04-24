@@ -1,4 +1,4 @@
-package security;
+package app.security;
 
 import io.jsonwebtoken.ExpiredJwtException;
 import io.jsonwebtoken.Jwts;
@@ -29,17 +29,19 @@ public final class TokenHandler {
 	private String issuer;
 
 	public User parseUserFromToken(String token) {
+		PublicKey key = KeyReader.getPublicKey("keys/public-key.der");
 		User user = null;
-		PublicKey key = KeyReader.getPublicKey("public-key.der");
 		
 		try {
 			assert Jwts.parser().setSigningKey(key).parseClaimsJws(token).getBody().getIssuer().equals(issuer);
+			String json = Jwts.parser().setSigningKey(key).parseClaimsJws(token).getBody().getSubject();
+			System.out.println(json);
 			user = new ObjectMapper().readValue(Jwts.parser().setSigningKey(key).parseClaimsJws(token).getBody().getSubject(), User.class);
 		} catch (AssertionError | ExpiredJwtException | UnsupportedJwtException
 				| MalformedJwtException | SignatureException
 				| IllegalArgumentException | IOException e) {
 			Logger logger = LogManager.getLogger(TokenHandler.class.getName());
-			logger.error("Tampering attempt detected. Error: " + e.getMessage() + "Token: " + token);
+			logger.error("Tampering attempt detected. Error: " + e.getStackTrace() + ", Token: " + token);
 		}
 		
 		try {
@@ -52,12 +54,19 @@ public final class TokenHandler {
 		return null;
 	}
 
-	public String createTokenForUser(User user, long expires) throws JsonProcessingException {
+	public String createTokenForUser(User user, long expires) {
 		PrivateKey privateKey = KeyReader.getPrivateKey("keys/private-key.der");
 		
-		return Jwts.builder().setSubject(new ObjectMapper().writeValueAsString(user)).
-				setExpiration(new Date(expires)).
-				setIssuer(issuer).
-				signWith(SignatureAlgorithm.RS512, privateKey).compact();
+		try {
+			return Jwts.builder().setSubject(new ObjectMapper().writeValueAsString(user)).
+					setExpiration(new Date(expires)).
+					setIssuer(issuer).
+					signWith(SignatureAlgorithm.RS512, privateKey).compact();
+		} catch (JsonProcessingException e) {
+			e.printStackTrace();
+			Logger logger = LogManager.getLogger(TokenHandler.class.getName());
+			logger.error("User serialization failed. Error: " + e.getStackTrace() + ", User: " + user.toString());
+		}
+		return null;
 	}
 }
