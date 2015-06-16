@@ -75,3 +75,4 @@ local.properties
 
 src/main/resources/application.properties
 src/main/resources/keys/private-key.der
+src/main/resources/sd-keystore.jks

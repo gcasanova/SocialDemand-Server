@@ -8,10 +8,13 @@ import javax.persistence.CascadeType;
 import javax.persistence.Column;
 import javax.persistence.Entity;
 import javax.persistence.FetchType;
+import javax.persistence.GeneratedValue;
+import javax.persistence.GenerationType;
 import javax.persistence.Id;
 import javax.persistence.OneToMany;
 import javax.persistence.Table;
 import javax.persistence.Transient;
+import javax.validation.constraints.NotNull;
 
 import org.springframework.security.core.userdetails.UserDetails;
 
@@ -29,7 +32,7 @@ import com.fasterxml.jackson.annotation.JsonProperty;
 @JsonInclude(Include.NON_NULL)
 public class User implements UserDetails {
 	private static final long serialVersionUID = -947757741988164699L;
-	
+
 	private Integer id;
 	private String name;
 	private String email;
@@ -37,110 +40,113 @@ public class User implements UserDetails {
 	private String document; // official identification document
 	private String password;
 	private Integer municipalityId;
-	
-	private String newPassword;
+
 	private boolean accountLocked;
 	private boolean accountExpired;
 	private boolean accountEnabled;
 	private boolean credentialsExpired;
 	private Set<UserAuthority> authorities;
-	
+
 	private Location location; // transient property populated when appropriate
-	
+
 	@Id
 	@JsonProperty
+	@GeneratedValue(strategy = GenerationType.AUTO)
 	public Integer getId() {
 		return id;
 	}
+
 	public void setId(Integer id) {
 		this.id = id;
 	}
-	
+
+	@NotNull
 	@JsonProperty
 	public String getName() {
 		return name;
 	}
+
 	public void setName(String name) {
 		this.name = name;
 	}
-	
+
+	@NotNull
 	@JsonProperty
 	public String getEmail() {
 		return email;
 	}
+
 	public void setEmail(String email) {
 		this.email = email;
 	}
-	
+
 	@JsonIgnore
 	public String getPhone() {
 		return phone;
 	}
+
 	@JsonProperty
 	public void setPhone(String phone) {
 		this.phone = phone;
 	}
-	
+
 	@JsonIgnore
 	public String getDocument() {
 		return document;
 	}
+
 	@JsonProperty
 	public void setDocument(String document) {
 		this.document = document;
 	}
-	
+
 	@Override
 	@JsonIgnore
 	public String getPassword() {
 		return password;
 	}
+
 	@JsonProperty
 	public void setPassword(String password) {
 		this.password = password;
 	}
-	
-	@Transient
-	@JsonIgnore
-	public String getNewPassword() {
-		return newPassword;
-	}
+
+	@NotNull
 	@JsonProperty
-	public void setNewPassword(String newPassword) {
-		this.newPassword = newPassword;
-	}
-	
-	@JsonProperty
-	@Column(name="municipality_id")
+	@Column(name = "municipality_id")
 	public Integer getMunicipalityId() {
 		return municipalityId;
 	}
+
 	public void setMunicipalityId(Integer municipalityId) {
 		this.municipalityId = municipalityId;
 	}
-	
+
 	@Transient
 	@JsonProperty
 	public Location getLocation() {
 		return location;
 	}
+
 	public void setLocation(Location location) {
 		this.location = location;
 	}
-	
+
 	////// SECURITY RELATED //////
-	
+
 	@Override
 	@JsonIgnore
 	@OneToMany(cascade = CascadeType.ALL, mappedBy = "user", fetch = FetchType.EAGER, orphanRemoval = true)
 	public Set<UserAuthority> getAuthorities() {
 		return authorities;
 	}
+
 	public void setAuthorities(Set<UserAuthority> authorities) {
 		this.authorities = authorities;
 	}
-	
-	@Transient // Use Roles as external API
+
+	@Transient
+	// Use Roles as external API
 	public Set<UserRole> getRoles() {
 		Set<UserRole> roles = EnumSet.noneOf(UserRole.class);
 		if (authorities != null) {
@@ -150,6 +156,7 @@ public class User implements UserDetails {
 		}
 		return roles;
 	}
+
 	public void setRoles(Set<UserRole> roles) {
 		for (UserRole role : roles) {
 			grantRole(role);
@@ -162,11 +169,13 @@ public class User implements UserDetails {
 		}
 		authorities.add(role.asAuthorityFor(this));
 	}
+
 	public void revokeRole(UserRole role) {
 		if (authorities != null) {
 			authorities.remove(role.asAuthorityFor(this));
 		}
 	}
+
 	public boolean hasRole(UserRole role) {
 		return authorities.contains(role.asAuthorityFor(this));
 	}
@@ -177,7 +186,7 @@ public class User implements UserDetails {
 	public boolean isAccountNonExpired() {
 		return !accountExpired;
 	}
-	
+
 	@Override
 	@Transient
 	@JsonIgnore
@@ -209,5 +218,10 @@ public class User implements UserDetails {
 	@JsonIgnore
 	public String getUsername() {
 		return email;
+	}
+
+	@JsonProperty
+	public void setUsername(String username) {
+		this.email = username;
 	}
 }

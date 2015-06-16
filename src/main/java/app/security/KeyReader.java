@@ -1,8 +1,6 @@
 package app.security;
 
 import java.io.DataInputStream;
-import java.io.File;
-import java.io.FileInputStream;
 import java.io.IOException;
 import java.security.KeyFactory;
 import java.security.NoSuchAlgorithmException;
@@ -12,17 +10,19 @@ import java.security.spec.InvalidKeySpecException;
 import java.security.spec.PKCS8EncodedKeySpec;
 import java.security.spec.X509EncodedKeySpec;
 
-import org.apache.log4j.LogManager;
-import org.apache.log4j.Logger;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.core.io.ClassPathResource;
+import org.springframework.stereotype.Component;
 
+@Component
 public class KeyReader {
-	public static PrivateKey getPrivateKey(String filename) {
+	private final Logger log = LoggerFactory.getLogger(this.getClass());
+	
+	public PrivateKey getPrivateKey(String filename) {
 		try {
-			File f = new ClassPathResource(filename).getFile();
-			FileInputStream fis = new FileInputStream(f);
-			DataInputStream dis = new DataInputStream(fis);
-			byte[] keyBytes = new byte[(int) f.length()];
+			DataInputStream dis = new DataInputStream(new ClassPathResource(filename).getInputStream());
+			byte[] keyBytes = new byte[(int) dis.available()];
 			dis.readFully(keyBytes);
 			dis.close();
 
@@ -30,19 +30,16 @@ public class KeyReader {
 			KeyFactory kf = KeyFactory.getInstance("RSA");
 			return kf.generatePrivate(spec);
 		} catch (InvalidKeySpecException | NoSuchAlgorithmException | IOException e) {
-			Logger logger = LogManager.getLogger(KeyReader.class.getName());
-			logger.error("Private key retrieval failed: " + e.getMessage() + ". " + e.getStackTrace());
+			log.error("Private key retrieval failed: " + e.getMessage() + ". " + e.getMessage());
 			e.printStackTrace();
 		}
 		return null;
 	}
 
-	public static PublicKey getPublicKey(String filename) {
+	public PublicKey getPublicKey(String filename) {
 		try {
-			File f = new ClassPathResource(filename).getFile();
-			FileInputStream fis = new FileInputStream(f);
-			DataInputStream dis = new DataInputStream(fis);
-			byte[] keyBytes = new byte[(int) f.length()];
+			DataInputStream dis = new DataInputStream(new ClassPathResource(filename).getInputStream());
+			byte[] keyBytes = new byte[(int) dis.available()];
 			dis.readFully(keyBytes);
 			dis.close();
 
@@ -50,8 +47,7 @@ public class KeyReader {
 			KeyFactory kf = KeyFactory.getInstance("RSA");
 			return kf.generatePublic(spec);
 		} catch (InvalidKeySpecException | NoSuchAlgorithmException | IOException e) {
-			Logger logger = LogManager.getLogger(KeyReader.class.getName());
-			logger.error("Private key retrieval failed: " + e.getMessage() + ". " + e.getStackTrace());
+			log.error("Private key retrieval failed: " + e.getMessage() + ". " + e.getMessage());
 			e.printStackTrace();
 		}
 		return null;

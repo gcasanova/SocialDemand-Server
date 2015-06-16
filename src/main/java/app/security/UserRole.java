@@ -3,7 +3,7 @@ package app.security;
 import app.domain.entities.User;
 
 public enum UserRole {
-	USER, ADMIN;
+	GUEST, USER, ADMIN;
 
 	public UserAuthority asAuthorityFor(final User user) {
 		final UserAuthority authority = new UserAuthority();
@@ -14,6 +14,8 @@ public enum UserRole {
 
 	public static UserRole valueOf(final UserAuthority authority) {
 		switch (authority.getAuthority()) {
+			case "ROLE_GUEST":
+				return GUEST;
 			case "ROLE_USER":
 				return USER;
 			case "ROLE_ADMIN":
