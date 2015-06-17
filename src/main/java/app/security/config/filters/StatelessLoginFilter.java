@@ -28,13 +28,13 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 
 public class StatelessLoginFilter extends AbstractAuthenticationProcessingFilter {
 	private final Logger log = LoggerFactory.getLogger(this.getClass());
-	
+
 	private final TokenAuthenticationService tokenAuthenticationService;
 	private final UserDetailsService userDetailsService;
 
 	public StatelessLoginFilter(String urlMapping, TokenAuthenticationService tokenAuthenticationService, UserDetailsService userDetailsService, AuthenticationManager authManager) {
 		super(new AntPathRequestMatcher(urlMapping));
-		
+
 		this.userDetailsService = userDetailsService;
 		this.tokenAuthenticationService = tokenAuthenticationService;
 		setAuthenticationManager(authManager);

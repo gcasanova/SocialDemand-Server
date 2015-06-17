@@ -1,8 +1,7 @@
-package app.service;
+package app.service.user;
 
 import java.util.HashSet;
 import java.util.Set;
-import java.util.concurrent.TimeUnit;
 
 import org.json.simple.JSONObject;
 import org.json.simple.parser.JSONParser;
@@ -10,13 +9,14 @@ import org.json.simple.parser.ParseException;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.data.redis.core.RedisTemplate;
+import org.springframework.data.redis.core.StringRedisTemplate;
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.stereotype.Service;
 
 import app.domain.entities.User;
 import app.domain.repositories.UserRepository;
 import app.security.UserRole;
+import app.service.redis.RedisService;
 
 import com.fasterxml.jackson.core.JsonGenerator.Feature;
 import com.fasterxml.jackson.core.JsonProcessingException;
@@ -26,17 +26,12 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 public class UserServiceDefault implements UserService {
 	private final Logger log = LoggerFactory.getLogger(this.getClass());
 	
-	private final static String USER_RESET_FLAG_PREFIX = "user#reset#";
-	private final static String USER_UNVERIFIED_PREFIX = "user#unverified#";
-	private final static String USER_RESET_PASSWORD_PREFIX = "user#reset-password#";
-	
-	private final static long EXPIRATION_TIME_LONG = 24 * 60 * 1; // 1 day in minutes
-	private final static long EXPIRATION_TIME_RESET_FLAG_LONG = 10; // minutes to reset password when flagged
-	
+	@Autowired
+	private StringRedisTemplate redis;
+	@Autowired
+	private RedisService redisService;
 	@Autowired
 	private UserRepository userRepository;
-	@Autowired
-	private RedisTemplate<String, String> redis;
 
 	@Override
 	public User getUser(Integer id) {
@@ -70,25 +65,23 @@ public class UserServiceDefault implements UserService {
 
 	@Override
 	@SuppressWarnings("unchecked")
-	public boolean saveUnverifiedUser(User aUser, String secret) throws JsonProcessingException {
-		if (redis.opsForValue().get(USER_UNVERIFIED_PREFIX + aUser.getEmail()) == null) {
+	public boolean setVerificationEmailFlag(User aUser, String secret) throws JsonProcessingException {
+		if (redis.opsForValue().get(RedisService.USER_VERIFICATION_EMAIL_PREFIX + aUser.getEmail()) == null) {
 			JSONObject json = new JSONObject();
 			json.put("user", new ObjectMapper().writeValueAsString(aUser));
 			json.put("password", new BCryptPasswordEncoder().encode(aUser.getPassword()));
 			json.put("secret", secret);
 			
-			redis.opsForValue().set(USER_UNVERIFIED_PREFIX + aUser.getEmail(), json.toString());
-			redis.expire(USER_UNVERIFIED_PREFIX + aUser.getEmail(), EXPIRATION_TIME_LONG, TimeUnit.MINUTES);
-			
+			this.redisService.flagVerificationEmail(aUser.getEmail(), json.toString(), true);
 			return true;
 		}
 		return false;
 	}
 
 	@Override
-	public boolean verifyUser(String email, String secret) throws ParseException {
+	public boolean verifySignUpVerificationEmail(String email, String secret) throws ParseException {
 		if (email != null && secret != null) {
-			String entry = redis.opsForValue().get(USER_UNVERIFIED_PREFIX + email);
+			String entry = redis.opsForValue().get(RedisService.USER_VERIFICATION_EMAIL_PREFIX + email);
 			if (entry != null) {
 				JSONObject json = (JSONObject) new JSONParser().parse(entry);
 				if (secret.equals(json.get("secret"))) {
@@ -106,7 +99,7 @@ public class UserServiceDefault implements UserService {
 						return false;
 					} finally {
 						// remove from redis
-						redis.delete(USER_UNVERIFIED_PREFIX + email);
+						this.redisService.flagVerificationEmail(email, null, false);
 					}
 					return true;
 				}
@@ -116,30 +109,17 @@ public class UserServiceDefault implements UserService {
 	}
 
 	@Override
-	@SuppressWarnings("unchecked")
-	public void saveResetPasswordUser(User aUser, String secret) throws JsonProcessingException {
-		JSONObject json = new JSONObject();
-		json.put("user", new ObjectMapper().writeValueAsString(aUser));
-		json.put("password", new BCryptPasswordEncoder().encode(aUser.getPassword()));
-		json.put("secret", secret);
-		
-		redis.opsForValue().set(USER_RESET_PASSWORD_PREFIX + aUser.getEmail(), json.toString());
-		redis.expire(USER_RESET_PASSWORD_PREFIX + aUser.getEmail(), EXPIRATION_TIME_LONG, TimeUnit.MINUTES);
-	}
-
-	@Override
-	public boolean verifyUserReset(String email, String secret) throws ParseException {
+	public boolean verifyPasswordResetVerificationEmail(String email, String secret) throws ParseException {
 		if (email != null && secret != null) {
-			String entry = redis.opsForValue().get(USER_RESET_PASSWORD_PREFIX + email);
+			String entry = redis.opsForValue().get(RedisService.USER_VERIFICATION_EMAIL_PREFIX + email);
 			if (entry != null) {
 				JSONObject json = (JSONObject) new JSONParser().parse(entry);
 				if (secret.equals(json.get("secret"))) {
 					// remove from redis
-					redis.delete(USER_RESET_PASSWORD_PREFIX + email);
+					this.redisService.flagVerificationEmail(email, null, false);
 					
 					// flag user as able to reset password for the next 10 minutes
-					redis.opsForValue().set(USER_RESET_FLAG_PREFIX + email, "");
-					redis.expire(USER_RESET_FLAG_PREFIX + email, EXPIRATION_TIME_RESET_FLAG_LONG, TimeUnit.MINUTES);
+					this.redisService.flagChangesSensitive(email, true);
 					return true;
 				}
 			}

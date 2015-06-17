@@ -18,16 +18,15 @@ import org.springframework.web.filter.CharacterEncodingFilter;
 /*
  * Main configuration class
  */
-
 @EnableAsync
 @Configuration
 public class MainConfig {
-	
+
 	@Bean
 	public SecureRandom secureRandom() {
 		return new SecureRandom();
 	}
-	
+
 	@Bean
 	public Filter characterEncodingFilter() {
 		CharacterEncodingFilter characterEncodingFilter = new CharacterEncodingFilter();
@@ -35,7 +34,7 @@ public class MainConfig {
 		characterEncodingFilter.setForceEncoding(true);
 		return characterEncodingFilter;
 	}
-    
+
 	@Bean
 	public EmbeddedServletContainerFactory servletContainer() {
 		TomcatEmbeddedServletContainerFactory tomcat = new TomcatEmbeddedServletContainerFactory() {

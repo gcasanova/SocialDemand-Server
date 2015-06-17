@@ -1,4 +1,4 @@
-package app.service;
+package app.service.mail;
 
 import java.util.Properties;
 
@@ -19,7 +19,7 @@ import org.springframework.scheduling.annotation.Async;
 import org.springframework.stereotype.Service;
 
 @Service
-public class MailService {
+public class MailServiceDefault implements MailService {
 	private final Logger log = LoggerFactory.getLogger(this.getClass());
 	
 	@Value("${email.name}")
@@ -29,10 +29,11 @@ public class MailService {
 	private String password;
 
 	@Async
-	public void sendVerificationEmail(String emailTo, String secret, HttpServletRequest request) {
+	@Override
+	public void sendSignUpEmail(String emailTo, String secret, HttpServletRequest request) {
 		String to = emailTo;
 		String subject = "Social Demand - Email Verification Link";
-		String html = "Please click on the following link to verify your account, \n\n<a href='https://" + request.getLocalAddr() + ":" + request.getLocalPort() + "/api/auth/verification?email=" + emailTo + "&token=" + secret + "'>VERIFICATION LINK!</a>";
+		String html = "Please click on the following link to verify your account, \n\n<a href='https://" + request.getLocalAddr() + ":" + request.getLocalPort() + "/api/auth/signup/verification?email=" + emailTo + "&token=" + secret + "'>VERIFICATION LINK!</a>";
 
 		Properties props = new Properties();
 		props.setProperty("mail.host", "smtp.gmail.com");
@@ -56,10 +57,11 @@ public class MailService {
 	}
 	
 	@Async
-	public void sendPasswordResetEmail(String emailTo, String secret, HttpServletRequest request) {
+	@Override
+	public void sendResetPasswordEmail(String emailTo, String secret, HttpServletRequest request) {
 		String to = emailTo;
 		String subject = "Social Demand - Reset Password Link";
-		String html = "Please click on the following link to reset your password, \n\n<a href='https://" + request.getLocalAddr() + ":" + request.getLocalPort() + "/api/auth/resetPassword?email=" + emailTo + "&token=" + secret + "'>RESET PASSWORD LINK!</a>";
+		String html = "Please click on the following link to reset your password, \n\n<a href='https://" + request.getLocalAddr() + ":" + request.getLocalPort() + "/api/auth/reset/verification?email=" + emailTo + "&token=" + secret + "'>RESET PASSWORD LINK!</a>";
 
 		Properties props = new Properties();
 		props.setProperty("mail.host", "smtp.gmail.com");

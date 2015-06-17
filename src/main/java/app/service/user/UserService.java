@@ -1,4 +1,4 @@
-package app.service;
+package app.service.user;
 
 import javax.validation.Valid;
 import javax.validation.constraints.NotNull;
@@ -14,7 +14,7 @@ import com.fasterxml.jackson.core.JsonProcessingException;
 public interface UserService {
 
 	User getUser(
-			@NotNull( message = "{validate.userService.getUser.id}") Integer id);
+			@NotNull(message = "{validate.userService.getUser.id}") Integer id);
 	
 	User getUserByEmail(
 			@NotNull(message = "{validate.userService.getUserByEmail.email}") String email);
@@ -28,21 +28,17 @@ public interface UserService {
 	User save(
 			@NotNull(message = "{validate.userService.save.user}") @Valid User user);
 	
-	boolean saveUnverifiedUser(
+	boolean setVerificationEmailFlag(
 			@NotNull(message = "{validate.userService.saveUnverifiedUser.user}") @Valid User aUser,
 			@NotNull(message = "{validate.userService.saveUnverifiedUser.secret}") String secret) throws JsonProcessingException;
 	
-	void saveResetPasswordUser(
-			@NotNull(message = "{validate.userService.saveResetPasswordUser.user}") @Valid User aUser,
-			@NotNull(message = "{validate.userService.saveResetPasswordUser.secret}") String secret) throws JsonProcessingException;
+	boolean verifySignUpVerificationEmail(
+			@NotNull(message = "{validate.userService.verifyUser.email}") String email,
+			@NotNull(message = "{validate.userService.verifyUser.secret}") String secret) throws ParseException;
 	
-	boolean verifyUser(
-			@NotNull(message = "{validate.userService.save.user}") String email,
-			@NotNull(message = "{validate.userService.save.user}") String secret) throws ParseException;
-	
-	boolean verifyUserReset(
-			@NotNull(message = "{validate.userService.save.user}") String email,
-			@NotNull(message = "{validate.userService.save.user}") String secret) throws ParseException;
+	boolean verifyPasswordResetVerificationEmail(
+			@NotNull(message = "{validate.userService.verifyUserReset.email}") String email,
+			@NotNull(message = "{validate.userService.verifyUserReset.secret}") String secret) throws ParseException;
 
 	void deleteUser(Integer id);
 }

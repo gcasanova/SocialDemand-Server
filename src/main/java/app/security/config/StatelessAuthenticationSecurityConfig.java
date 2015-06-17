@@ -46,7 +46,8 @@ public class StatelessAuthenticationSecurityConfig extends WebSecurityConfigurer
                 .antMatchers("/resources/**")
                 .antMatchers(HttpMethod.GET, "/api/**")
                 .antMatchers(HttpMethod.POST, "/api/auth/signup")
-        		.antMatchers(HttpMethod.POST, "/api/auth/reset");
+        		.antMatchers(HttpMethod.POST, "/api/auth/reset")
+        		.antMatchers(HttpMethod.POST, "/api/auth/change");
     }
 
 	@Override

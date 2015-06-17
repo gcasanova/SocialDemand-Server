@@ -12,8 +12,8 @@ import org.springframework.web.bind.annotation.RestController;
 
 import app.domain.entities.User;
 import app.domain.entities.location.Location;
-import app.service.MailService;
-import app.service.UserService;
+import app.service.mail.MailService;
+import app.service.user.UserService;
 
 @RestController
 @RequestMapping("/api/user")
