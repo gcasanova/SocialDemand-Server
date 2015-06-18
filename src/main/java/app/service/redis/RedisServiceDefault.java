@@ -59,4 +59,25 @@ public class RedisServiceDefault implements RedisService {
 			redis.delete(USER_VERIFICATION_EMAIL_PREFIX + email);
 		}
 	}
+
+	@Override
+	public void flagUserUpgrade(String email, String value, boolean setFlag) {
+		if (setFlag) {
+			assert value != null;
+			
+			log.debug("Setting user upgrade flag on redis for user: " + email);
+			try {
+				redis.opsForValue().set(USER_UPGRADE_PREFIX + email, value);
+				redis.expire(USER_UPGRADE_PREFIX + email, EXPIRATION_TIME_10_MINUTES_MILLIS, TimeUnit.MILLISECONDS);
+			} catch (Exception e) {
+				log.error("User upgrade flag FAILED: " + e.getMessage());
+				
+				// in case the first operation went through and second failed, try to delete it
+				redis.delete(USER_UPGRADE_PREFIX + email);
+			}
+		} else {
+			log.debug("Removing user upgrade flag from redis for user: " + email);
+			redis.delete(USER_UPGRADE_PREFIX + email);
+		}
+	}
 }

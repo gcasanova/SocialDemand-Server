@@ -16,6 +16,7 @@ import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
+import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestHeader;
@@ -25,6 +26,7 @@ import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 
 import app.domain.entities.User;
+import app.service.cognalys.CognalysService;
 import app.service.mail.MailService;
 import app.service.redis.RedisService;
 import app.service.user.UserService;
@@ -46,6 +48,8 @@ public class AuthController {
 	private RedisService redisService;
 	@Autowired
 	private StringRedisTemplate redis;
+	@Autowired
+	private CognalysService cognalysService;
 	@Autowired
 	private AuthenticationManager authenticationManager;
 	
@@ -160,5 +164,33 @@ public class AuthController {
 		}
 		log.info("Password change request with bad credentials. Email: " + email + ", Password: " + password);
 		return new ResponseEntity<String>(HttpStatus.FORBIDDEN);
+	}
+	
+	/*
+	 * Phone number verification via Cognalys phase 1
+	*/
+	@RequestMapping(value = "/upgrade", method = RequestMethod.POST)
+	public ResponseEntity<?> upgrade(@RequestHeader("Document") String document, @RequestHeader("Mobile") String mobile) {
+		String email = SecurityContextHolder.getContext().getAuthentication().getName();
+		
+		assert email != null;
+		if (this.userService.getUserByDocument(document) == null && this.userService.getUserByPhone(mobile) == null) {
+			if (this.redis.opsForValue().get(RedisService.USER_UPGRADE_PREFIX + email) == null) {
+				return this.cognalysService.doPhoneCall(mobile, email, document);
+			}
+		}
+		log.info("User upgrade while upgrade verification number is pending yet: " + email);
+		return new ResponseEntity<String>(HttpStatus.PRECONDITION_FAILED);
+	}
+	
+	/*
+	 * Phone number verification via Cognalys phase 2
+	*/
+	@RequestMapping(value = "/upgrade/verification", method = RequestMethod.POST)
+	public ResponseEntity<?> upgradeVerification(@RequestHeader("Verification") String verification) {
+		String email = SecurityContextHolder.getContext().getAuthentication().getName();
+		
+		assert email != null;
+		return this.cognalysService.doPhoneCallNumberVerification(email, verification);
 	}
 }

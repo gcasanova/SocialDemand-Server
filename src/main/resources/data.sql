@@ -9,9 +9,9 @@ insert  into `municipalities`(`province_id`,`name`,`id`,`latitude`,`longitude`) 
 
 /*Data for the table `users` */
 insert into `users`(`id`,`name`,`email`,`phone`,`document`,`password`,`municipality_id`) values (DEFAULT,'Enrique Rizo','erizo@gmail.com','+34 6326397771','0000001-J','$2a$08$hh2ovhyju5vZ2YsElGJgxebHahJJsPKMwtU7NHpdiE8KCYNAhvnU2', 6);
-insert into `users`(`id`,`name`,`email`,`phone`,`document`,`password`,`municipality_id`) values (DEFAULT,'Juan Rizo','jrizo@gmail.com','+34 6327197771','0000002-J','$2a$08$BCV0usayRPMJKZpwDKnbeu/irVfwJUixAd1MEjWsOo5ebNLO/vpsq', 8);
+insert into `users`(`id`,`name`,`email`,`phone`,`document`,`password`,`municipality_id`) values (DEFAULT,'Juan Rizo','jrizo@gmail.com',null,null,'$2a$08$BCV0usayRPMJKZpwDKnbeu/irVfwJUixAd1MEjWsOo5ebNLO/vpsq', 8);
 
 /*Data for the table `authorities` */
 insert into `authorities`(`id`,`user_id`,`authority`) values (DEFAULT, 1,'ROLE_USER');
 insert into `authorities`(`id`,`user_id`,`authority`) values (DEFAULT, 1,'ROLE_ADMIN');
-insert into `authorities`(`id`,`user_id`,`authority`) values (DEFAULT, 2,'ROLE_USER');
+insert into `authorities`(`id`,`user_id`,`authority`) values (DEFAULT, 2,'ROLE_GUEST');
