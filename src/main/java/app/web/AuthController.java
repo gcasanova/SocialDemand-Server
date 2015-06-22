@@ -1,5 +1,6 @@
 package app.web;
 
+import java.io.IOException;
 import java.math.BigInteger;
 import java.security.SecureRandom;
 
@@ -7,6 +8,7 @@ import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 import javax.validation.Valid;
 
+import org.json.simple.JSONObject;
 import org.json.simple.parser.ParseException;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -23,9 +25,11 @@ import org.springframework.web.bind.annotation.RequestHeader;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestMethod;
 import org.springframework.web.bind.annotation.RequestParam;
+import org.springframework.web.bind.annotation.ResponseStatus;
 import org.springframework.web.bind.annotation.RestController;
 
 import app.domain.entities.User;
+import app.security.TokenHandler;
 import app.service.cognalys.CognalysService;
 import app.service.mail.MailService;
 import app.service.redis.RedisService;
@@ -38,12 +42,16 @@ import com.fasterxml.jackson.core.JsonProcessingException;
 public class AuthController {
 	private final Logger log = LoggerFactory.getLogger(this.getClass());
 	
+	private static final long SEVEN_DAYS = 1000 * 60 * 60 * 24 * 7;
+	
 	@Autowired
 	private SecureRandom random;
 	@Autowired
 	private UserService userService;
 	@Autowired
 	private MailService mailService;
+	@Autowired
+	private TokenHandler tokenHandler;
 	@Autowired
 	private RedisService redisService;
 	@Autowired
@@ -52,6 +60,18 @@ public class AuthController {
 	private CognalysService cognalysService;
 	@Autowired
 	private AuthenticationManager authenticationManager;
+	
+	/*
+	 * Refresh valid token
+	*/
+	@SuppressWarnings("unchecked")
+	@ResponseStatus(HttpStatus.ACCEPTED)
+	@RequestMapping(value = "/refresh", method = RequestMethod.POST)
+	public void refresh(HttpServletResponse response) throws IOException {
+		JSONObject json = new JSONObject();
+		json.put("token", tokenHandler.createTokenForUser((User) SecurityContextHolder.getContext().getAuthentication().getDetails(), System.currentTimeMillis() + SEVEN_DAYS));
+		response.getWriter().write(json.toString());
+	}
 	
 	/*
 	 * Entry point for new registrations to the system

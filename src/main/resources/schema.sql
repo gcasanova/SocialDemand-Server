@@ -1,4 +1,4 @@
-USE `appdb`;
+USE `master`;
 
 /* Dropping tables */
 DROP TABLE IF EXISTS `authorities`;

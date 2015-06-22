@@ -18,8 +18,8 @@ import app.domain.repositories.UserRepository;
 import app.security.UserRole;
 import app.service.redis.RedisService;
 
-import com.fasterxml.jackson.core.JsonGenerator.Feature;
 import com.fasterxml.jackson.core.JsonProcessingException;
+import com.fasterxml.jackson.databind.DeserializationFeature;
 import com.fasterxml.jackson.databind.ObjectMapper;
 
 @Service
@@ -86,7 +86,7 @@ public class UserServiceDefault implements UserService {
 				JSONObject json = (JSONObject) new JSONParser().parse(entry);
 				if (secret.equals(json.get("secret"))) {
 					try {
-						User mUser = new ObjectMapper().configure(Feature.IGNORE_UNKNOWN, true).readValue(json.get("user").toString(), User.class);
+						User mUser = new ObjectMapper().configure(DeserializationFeature.FAIL_ON_UNKNOWN_PROPERTIES, false).readValue(json.get("user").toString(), User.class);
 						Set<UserRole> roles = new HashSet<>();
 						roles.add(UserRole.GUEST);
 						mUser.setRoles(roles);

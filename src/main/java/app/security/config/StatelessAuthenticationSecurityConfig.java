@@ -52,10 +52,10 @@ public class StatelessAuthenticationSecurityConfig extends WebSecurityConfigurer
 
 	@Override
 	protected void configure(HttpSecurity http) throws Exception {
-		http.exceptionHandling().and().servletApi().and().headers().cacheControl().and().and().authorizeRequests()
+		http.exceptionHandling().and().servletApi().and().headers().cacheControl().and().authorizeRequests()
 		
 				// allow anonymous POSTs to auth
-				.antMatchers(HttpMethod.POST, "/api/token/auth").permitAll()
+				.antMatchers(HttpMethod.POST, "/api/auth/token").permitAll()
 
 				// defined admin only API area
 				.antMatchers("/admin/**").hasRole("ADMIN")
@@ -64,7 +64,7 @@ public class StatelessAuthenticationSecurityConfig extends WebSecurityConfigurer
 				.anyRequest().hasAnyRole("GUEST", "USER", "ADMIN").and()
 
 				// custom JSON based authentication by POST of {"username":"<name>","password":"<password>"} which sets the token header upon authentication
-				.addFilterBefore(new StatelessLoginFilter("/api/token/auth", tokenAuthenticationService, userDetailsService, authenticationManager()), UsernamePasswordAuthenticationFilter.class)
+				.addFilterBefore(new StatelessLoginFilter("/api/auth/token", tokenAuthenticationService, userDetailsService, authenticationManager()), UsernamePasswordAuthenticationFilter.class)
 
 				// custom Token based authentication based on the header previously given to the client
 				.addFilterBefore(new StatelessAuthenticationFilter(tokenAuthenticationService), UsernamePasswordAuthenticationFilter.class);
