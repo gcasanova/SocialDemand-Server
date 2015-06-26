@@ -45,6 +45,7 @@ public class StatelessAuthenticationSecurityConfig extends WebSecurityConfigurer
                 // All of Spring Security will ignore the requests
                 .antMatchers("/resources/**")
                 .antMatchers(HttpMethod.GET, "/api/**")
+                .antMatchers(HttpMethod.OPTIONS, "/api/auth/token")
                 .antMatchers(HttpMethod.POST, "/api/auth/signup")
         		.antMatchers(HttpMethod.POST, "/api/auth/reset")
         		.antMatchers(HttpMethod.POST, "/api/auth/change");
