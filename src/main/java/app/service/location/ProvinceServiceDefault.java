@@ -1,5 +1,7 @@
 package app.service.location;
 
+import java.util.List;
+
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
@@ -15,6 +17,11 @@ public class ProvinceServiceDefault implements ProvinceService {
 	@Override
 	public Province getProvince(Integer id) {
 		return this.provinceRepository.findOne(id);
+	}
+	
+	@Override
+	public List<Province> getProvinceByRegionId(Integer regionId) {
+		return this.provinceRepository.findByRegionId(regionId);
 	}
 
 	@Override

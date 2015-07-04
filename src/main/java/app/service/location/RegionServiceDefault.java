@@ -1,5 +1,8 @@
 package app.service.location;
 
+import java.util.ArrayList;
+import java.util.List;
+
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
@@ -15,6 +18,15 @@ public class RegionServiceDefault implements RegionService {
 	@Override
 	public Region getRegion(Integer id) {
 		return this.regionRepository.findOne(id);
+	}
+	
+	@Override
+	public List<Region> getAllRegions() {
+		List<Region> regions = new ArrayList<>();
+		for (Region region : this.regionRepository.findAll()) {
+			regions.add(region);
+		}
+		return regions;
 	}
 
 	@Override

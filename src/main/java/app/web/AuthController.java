@@ -78,35 +78,49 @@ public class AuthController {
 	*/
 	@RequestMapping(value = "/signup", method = RequestMethod.POST)
 	public ResponseEntity<?> signup(HttpServletRequest request, @RequestBody @Valid User aUser) {
-		try {
-			String secret = new BigInteger(130, random).toString(32);
-			
-			if (this.userService.setVerificationEmailFlag(aUser, secret)) {
-				this.mailService.sendSignUpEmail(aUser.getEmail(), secret, request);
-				return new ResponseEntity<String>(HttpStatus.OK);
+		if (this.userService.getUserByEmail(aUser.getEmail()) == null) {
+			try {
+				String secret = new BigInteger(130, random).toString(32);
+				
+				if (this.userService.setVerificationEmailFlag(aUser, secret)) {
+					this.mailService.sendSignUpEmail(aUser.getEmail(), secret, request);
+					return new ResponseEntity<String>(HttpStatus.OK);
+				}
+				
+				// user submitted sign up data a couple of minutes ago
+				return new ResponseEntity<String>("Email confirmation was already sent, check your email inbox", HttpStatus.PRECONDITION_FAILED);
+			} catch (JsonProcessingException | ParseException e) {
+				log.error("Error parsing on sign: " + e.getMessage());
 			}
-			
-			// user already in redis (should request link resend instead)
-			return new ResponseEntity<String>(HttpStatus.PRECONDITION_FAILED);
-		} catch (JsonProcessingException e) {
-			log.error("Error parsing on sign: " + e.getMessage());
+			return new ResponseEntity<String>(HttpStatus.INTERNAL_SERVER_ERROR);
 		}
-		return new ResponseEntity<String>(HttpStatus.INTERNAL_SERVER_ERROR);
+		// user with this email already exists
+		return new ResponseEntity<String>("Email already registered for other user", HttpStatus.FORBIDDEN);
 	}
 	
 	/*
 	 * Endpoint reached by the user when the link of the verification email is clicked (for new registrations)
 	*/
 	@RequestMapping(value = "/signup/verification", method = RequestMethod.GET)
-	public ResponseEntity<?> signupVerificationEmail(@RequestParam("email") String email, @RequestParam("token") String token) {
+	public ResponseEntity<?> signupVerificationEmail(HttpServletResponse response, @RequestParam("email") String email, @RequestParam("token") String token) {
 		try {
 			if (this.userService.verifySignUpVerificationEmail(email, token)) {
-				// redirect to login page (to be implemented)
+				try {
+					response.sendRedirect("http://localhost:4200/success"); // hardcoded ip (only for testing)
+				} catch (IOException e) {
+					log.error("Redirect to /login route after signup verification failed: " + e.getMessage(), e.getCause());
+				}
 				return new ResponseEntity<String>(HttpStatus.OK);
 			}
 		} catch (ParseException e) {
 			log.error("Error parsing on verifyEmail: " + e.getMessage());
 			return new ResponseEntity<String>(HttpStatus.INTERNAL_SERVER_ERROR);
+		}
+		
+		try {
+			response.sendRedirect("http://localhost:4200/invalid"); // hardcoded ip (only for testing)
+		} catch (IOException e) {
+			log.error("Redirect to /invalid route after signup verification failed: " + e.getMessage(), e.getCause());
 		}
 		return new ResponseEntity<String>(HttpStatus.FORBIDDEN);
 	}
@@ -123,7 +137,7 @@ public class AuthController {
 				this.userService.setVerificationEmailFlag(mUser, secret);
 				this.mailService.sendResetPasswordEmail(mUser.getEmail(), secret, request);
 				return new ResponseEntity<String>(HttpStatus.OK);
-			} catch (JsonProcessingException e) {
+			} catch (JsonProcessingException | ParseException e) {
 				log.error("Error parsing on sign: " + e.getMessage());
 			}
 		}
@@ -137,12 +151,22 @@ public class AuthController {
 	public ResponseEntity<?> resetVerificationEmail(HttpServletResponse response, @RequestParam("email") String email, @RequestParam("token") String token) {
 		try {
 			if (this.userService.verifyPasswordResetVerificationEmail(email, token)) {
-				// redirect to password reset page (to be implemented)
+				try {
+					response.sendRedirect("http://localhost:4200/reset"); // hardcoded ip (only for testing)
+				} catch (IOException e) {
+					log.error("Redirect to /reset route after forgotten verification failed: " + e.getMessage(), e.getCause());
+				}
 				return new ResponseEntity<String>(HttpStatus.OK);
 			}
 		} catch (ParseException e) {
 			log.error("Error parsing on verifyEmail: " + e.getMessage());
 			return new ResponseEntity<String>(HttpStatus.INTERNAL_SERVER_ERROR);
+		}
+		
+		try {
+			response.sendRedirect("http://localhost:4200/invalid"); // hardcoded ip (only for testing)
+		} catch (IOException e) {
+			log.error("Redirect to /invalid route after forgotten verification failed: " + e.getMessage(), e.getCause());
 		}
 		return new ResponseEntity<String>(HttpStatus.FORBIDDEN);
 	}
@@ -170,11 +194,17 @@ public class AuthController {
 		if (this.redis.opsForValue().get(RedisService.USER_CHANGES_SENSITIVE_PREFIX + email) != null) {
 			try {
 				User mUser = this.userService.getUserByEmail(email);
-				mUser.setPassword(new BCryptPasswordEncoder().encode(password));
-				this.userService.save(mUser);
 				
-				log.debug("Password changed for user : " + email);
-				return new ResponseEntity<String>(HttpStatus.OK);
+				if (mUser != null) {
+					mUser.setPassword(new BCryptPasswordEncoder().encode(password));
+					this.userService.save(mUser);
+					
+					log.debug("Password changed for user : " + email);
+					return new ResponseEntity<String>(HttpStatus.OK);
+				} else {
+					log.info("Password change request with an email not registered. Email: " + email);
+					return new ResponseEntity<String>(HttpStatus.NOT_FOUND);
+				}
 			} catch (Exception e) {
 				log.error("Error changing password : " + e.getMessage());
 				return new ResponseEntity<String>(HttpStatus.INTERNAL_SERVER_ERROR);
@@ -182,7 +212,7 @@ public class AuthController {
 				this.redisService.flagChangesSensitive(email, false);
 			}
 		}
-		log.info("Password change request with bad credentials. Email: " + email + ", Password: " + password);
+		log.info("Password change request made without having confirmed email first. Email: " + email);
 		return new ResponseEntity<String>(HttpStatus.FORBIDDEN);
 	}
 	

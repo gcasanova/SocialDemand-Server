@@ -15,7 +15,10 @@ import javax.persistence.OneToMany;
 import javax.persistence.Table;
 import javax.persistence.Transient;
 import javax.validation.constraints.NotNull;
+import javax.validation.constraints.Pattern;
+import javax.validation.constraints.Size;
 
+import org.hibernate.validator.constraints.Email;
 import org.springframework.security.core.userdetails.UserDetails;
 
 import app.domain.entities.location.Location;
@@ -55,27 +58,28 @@ public class User implements UserDetails {
 	public Integer getId() {
 		return id;
 	}
-
 	public void setId(Integer id) {
 		this.id = id;
 	}
 
 	@NotNull
 	@JsonProperty
+	@Size(min=3, max=25)
+	@Pattern(regexp="^[A-zÀ-ÿ ]*$")
 	public String getName() {
 		return name;
 	}
-
 	public void setName(String name) {
 		this.name = name;
 	}
 
+	@Email
 	@NotNull
 	@JsonProperty
+	@Pattern(regexp="^[a-zA-Z0-9_.+-]+@[a-zA-Z0-9-]+\\.[a-zA-Z0-9-.]+$")
 	public String getEmail() {
 		return email;
 	}
-
 	public void setEmail(String email) {
 		this.email = email;
 	}
@@ -84,7 +88,6 @@ public class User implements UserDetails {
 	public String getPhone() {
 		return phone;
 	}
-
 	@JsonProperty
 	public void setPhone(String phone) {
 		this.phone = phone;
@@ -94,7 +97,6 @@ public class User implements UserDetails {
 	public String getDocument() {
 		return document;
 	}
-
 	@JsonProperty
 	public void setDocument(String document) {
 		this.document = document;
@@ -105,7 +107,6 @@ public class User implements UserDetails {
 	public String getPassword() {
 		return password;
 	}
-
 	@JsonProperty
 	public void setPassword(String password) {
 		this.password = password;
@@ -117,7 +118,6 @@ public class User implements UserDetails {
 	public Integer getMunicipalityId() {
 		return municipalityId;
 	}
-
 	public void setMunicipalityId(Integer municipalityId) {
 		this.municipalityId = municipalityId;
 	}
@@ -127,7 +127,6 @@ public class User implements UserDetails {
 	public Location getLocation() {
 		return location;
 	}
-
 	public void setLocation(Location location) {
 		this.location = location;
 	}
@@ -140,7 +139,6 @@ public class User implements UserDetails {
 	public Set<UserAuthority> getAuthorities() {
 		return authorities;
 	}
-
 	public void setAuthorities(Set<UserAuthority> authorities) {
 		this.authorities = authorities;
 	}
@@ -186,7 +184,7 @@ public class User implements UserDetails {
 	public boolean isAccountNonExpired() {
 		return !accountExpired;
 	}
-
+	
 	@Override
 	@Transient
 	@JsonIgnore
@@ -200,7 +198,7 @@ public class User implements UserDetails {
 	public boolean isCredentialsNonExpired() {
 		return !credentialsExpired;
 	}
-
+	
 	@Override
 	@Transient
 	@JsonIgnore
@@ -219,7 +217,6 @@ public class User implements UserDetails {
 	public String getUsername() {
 		return email;
 	}
-
 	@JsonProperty
 	public void setUsername(String username) {
 		this.email = username;

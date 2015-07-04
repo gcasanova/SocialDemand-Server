@@ -1,5 +1,7 @@
 package app.service.user;
 
+import java.time.Duration;
+import java.time.Instant;
 import java.util.HashSet;
 import java.util.Set;
 
@@ -64,16 +66,18 @@ public class UserServiceDefault implements UserService {
 	}
 
 	@Override
-	@SuppressWarnings("unchecked")
-	public boolean setVerificationEmailFlag(User aUser, String secret) throws JsonProcessingException {
-		if (redis.opsForValue().get(RedisService.USER_VERIFICATION_EMAIL_PREFIX + aUser.getEmail()) == null) {
-			JSONObject json = new JSONObject();
-			json.put("user", new ObjectMapper().writeValueAsString(aUser));
-			json.put("password", new BCryptPasswordEncoder().encode(aUser.getPassword()));
-			json.put("secret", secret);
-			
-			this.redisService.flagVerificationEmail(aUser.getEmail(), json.toString(), true);
+	public boolean setVerificationEmailFlag(User aUser, String secret) throws JsonProcessingException, ParseException {
+		String entry = redis.opsForValue().get(RedisService.USER_VERIFICATION_EMAIL_PREFIX + aUser.getEmail());
+		if (entry == null) {
+			this.redisService.flagVerificationEmail(aUser.getEmail(), buildJson(aUser, secret).toString(), true);
 			return true;
+		} else {
+			// allow email resent if previous attempt was made more than 2 minutes ago
+			JSONObject json = (JSONObject) new JSONParser().parse(entry);
+			if (Instant.ofEpochMilli((long) json.get("timestamp")).plus(Duration.ofMinutes(2)).isBefore(Instant.ofEpochMilli(System.currentTimeMillis()))) {
+				this.redisService.flagVerificationEmail(aUser.getEmail(), buildJson(aUser, secret).toString(), true);
+				return true;
+			}
 		}
 		return false;
 	}
@@ -85,6 +89,7 @@ public class UserServiceDefault implements UserService {
 			if (entry != null) {
 				JSONObject json = (JSONObject) new JSONParser().parse(entry);
 				if (secret.equals(json.get("secret"))) {
+					log.debug("Email verification was successful for user " + email);
 					try {
 						User mUser = new ObjectMapper().configure(DeserializationFeature.FAIL_ON_UNKNOWN_PROPERTIES, false).readValue(json.get("user").toString(), User.class);
 						Set<UserRole> roles = new HashSet<>();
@@ -101,10 +106,15 @@ public class UserServiceDefault implements UserService {
 						// remove from redis
 						this.redisService.flagVerificationEmail(email, null, false);
 					}
+					// create email verified flag and set to true
+					this.redisService.flagVerifiedEmail(email, true, true);
 					return true;
 				}
 			}
 		}
+		
+		// create email verified flag and set to false
+		this.redisService.flagVerifiedEmail(email, false, true);
 		return false;
 	}
 
@@ -125,5 +135,16 @@ public class UserServiceDefault implements UserService {
 			}
 		}
 		return false;
+	}
+	
+	@SuppressWarnings({ "unchecked" })
+	private JSONObject buildJson(User aUser, String secret) throws JsonProcessingException {
+		JSONObject json = new JSONObject();
+		json.put("user", new ObjectMapper().writeValueAsString(aUser));
+		json.put("password", new BCryptPasswordEncoder().encode(aUser.getPassword()));
+		json.put("timestamp", System.currentTimeMillis());
+		json.put("secret", secret);
+		
+		return json;
 	}
 }

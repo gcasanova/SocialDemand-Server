@@ -27,13 +27,22 @@ public class MailServiceDefault implements MailService {
 	
 	@Value("${email.password}")
 	private String password;
+	
+	@Value("${aws.host.public.dns}")
+	private String hostname;
+	
+	@Value("${aws.host.port}")
+	private String port;
+	
+	@Value("${aws.host.protocol}")
+	private String protocol;
 
 	@Async
 	@Override
 	public void sendSignUpEmail(String emailTo, String secret, HttpServletRequest request) {
 		String to = emailTo;
 		String subject = "Social Demand - Email Verification Link";
-		String html = "Please click on the following link to verify your account, \n\n<a href='https://" + request.getLocalAddr() + ":" + request.getLocalPort() + "/api/auth/signup/verification?email=" + emailTo + "&token=" + secret + "'>VERIFICATION LINK!</a>";
+		String html = "Please click on the following link to verify your account, \n\n<a href='" + protocol + "://" + hostname + ":" + port + "/api/auth/signup/verification?email=" + emailTo + "&token=" + secret + "'>VERIFICATION LINK!</a>";
 
 		Properties props = new Properties();
 		props.setProperty("mail.host", "smtp.gmail.com");
@@ -61,7 +70,7 @@ public class MailServiceDefault implements MailService {
 	public void sendResetPasswordEmail(String emailTo, String secret, HttpServletRequest request) {
 		String to = emailTo;
 		String subject = "Social Demand - Reset Password Link";
-		String html = "Please click on the following link to reset your password, \n\n<a href='https://" + request.getLocalAddr() + ":" + request.getLocalPort() + "/api/auth/reset/verification?email=" + emailTo + "&token=" + secret + "'>RESET PASSWORD LINK!</a>";
+		String html = "Please click on the following link to reset your password, \n\n<a href='" + protocol + "://" + hostname + ":" + port + "/api/auth/reset/verification?email=" + emailTo + "&token=" + secret + "'>RESET PASSWORD LINK!</a>";
 
 		Properties props = new Properties();
 		props.setProperty("mail.host", "smtp.gmail.com");

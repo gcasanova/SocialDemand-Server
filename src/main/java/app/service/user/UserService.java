@@ -30,7 +30,7 @@ public interface UserService {
 	
 	boolean setVerificationEmailFlag(
 			@NotNull(message = "{validate.userService.saveUnverifiedUser.user}") @Valid User aUser,
-			@NotNull(message = "{validate.userService.saveUnverifiedUser.secret}") String secret) throws JsonProcessingException;
+			@NotNull(message = "{validate.userService.saveUnverifiedUser.secret}") String secret) throws JsonProcessingException, ParseException;
 	
 	boolean verifySignUpVerificationEmail(
 			@NotNull(message = "{validate.userService.verifyUser.email}") String email,

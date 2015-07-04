@@ -28,7 +28,7 @@ public class RedisServiceDefault implements RedisService {
 				redis.opsForValue().set(USER_CHANGES_SENSITIVE_PREFIX + email, "");
 				redis.expire(USER_CHANGES_SENSITIVE_PREFIX + email, EXPIRATION_TIME_10_MINUTES_MILLIS, TimeUnit.MILLISECONDS);
 			} catch (Exception e) {
-				log.error("Sensitive data changes flag FAILED: " + e.getMessage());
+				log.error("Sensitive data changes flag FAILED: " + e.getMessage(), e.getCause());
 				
 				// in case the first operation went through and second failed, try to delete it
 				redis.delete(USER_CHANGES_SENSITIVE_PREFIX + email);
@@ -49,7 +49,7 @@ public class RedisServiceDefault implements RedisService {
 				redis.opsForValue().set(USER_VERIFICATION_EMAIL_PREFIX + email, value);
 				redis.expire(USER_VERIFICATION_EMAIL_PREFIX + email, EXPIRATION_TIME_24_HOURS_MILLIS, TimeUnit.MILLISECONDS);
 			} catch (Exception e) {
-				log.error("Email verification flag FAILED: " + e.getMessage());
+				log.error("Email verification flag FAILED: " + e.getMessage(), e.getCause());
 				
 				// in case the first operation went through and second failed, try to delete it
 				redis.delete(USER_VERIFICATION_EMAIL_PREFIX + email);
@@ -70,7 +70,7 @@ public class RedisServiceDefault implements RedisService {
 				redis.opsForValue().set(USER_UPGRADE_PREFIX + email, value);
 				redis.expire(USER_UPGRADE_PREFIX + email, EXPIRATION_TIME_10_MINUTES_MILLIS, TimeUnit.MILLISECONDS);
 			} catch (Exception e) {
-				log.error("User upgrade flag FAILED: " + e.getMessage());
+				log.error("User upgrade flag FAILED: " + e.getMessage(), e.getCause());
 				
 				// in case the first operation went through and second failed, try to delete it
 				redis.delete(USER_UPGRADE_PREFIX + email);
