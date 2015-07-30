@@ -49,8 +49,8 @@ public class RedisLockManager implements LockManager {
         }
     }
 
+    @Override
     public void releaseLock(String key) {
         this.redis.delete(key);
     }
-
 }

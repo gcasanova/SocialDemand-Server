@@ -74,6 +74,9 @@ public class CognalysServiceDefault implements CognalysService {
 		String upgradeKey = getLockUpgradeKey(email);
 		if (lock.obtainLock(upgradeKey, MAX_WAITING)) {
 			try {
+				// remove "+" phone prefix if it exists (giving issues on request)
+				phoneNumber = phoneNumber.replace("+", "");
+				
 				HttpResponse<JsonNode> jsonNode = Unirest.get("https://www.cognalys.com/api/v1/otp")
 			  			  .header("accept", "application/json")
 			  			  .queryString("app_id", appId)
@@ -117,6 +120,9 @@ public class CognalysServiceDefault implements CognalysService {
 	public ResponseEntity<String> doPhoneCallNumberVerification(String email, String verification) {
 		String entry = redis.opsForValue().get(RedisService.USER_UPGRADE_PREFIX + email);
 		if (entry != null) {
+			// remove "+" phone prefix if it exists (giving issues on request)
+			verification = verification.replace("+", "");
+			
 			JSONObject json;
 			try {
 				json = (JSONObject) new JSONParser().parse(entry);
@@ -162,8 +168,8 @@ public class CognalysServiceDefault implements CognalysService {
 					return new ResponseEntity<String>(jsonToken.toString(), HttpStatus.OK);
 				} else {
 					log.error("Cognalys responded with an error to a number verification request.");
-					Set<Integer> keys = cognalysResponse.errors.keySet();
-					for (Integer key : keys) {
+					Set<String> keys = cognalysResponse.errors.keySet();
+					for (String key : keys) {
 						log.error("Code: " + key + ", Message: " + cognalysResponse.errors.get(key));
 					}
 					return new ResponseEntity<String>(HttpStatus.BAD_REQUEST);

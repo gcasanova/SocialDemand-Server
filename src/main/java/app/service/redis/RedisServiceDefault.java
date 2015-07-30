@@ -15,6 +15,7 @@ public class RedisServiceDefault implements RedisService {
 	// expiration times
 	private final static long EXPIRATION_TIME_24_HOURS_MILLIS = 24 * 60 * 60 * 1000;
 	private final static long EXPIRATION_TIME_10_MINUTES_MILLIS = 10 * 60 * 1000;
+	private final static long EXPIRATION_TIME_1_MINUTE_MILLIS = 1 * 60 * 1000;
 	
 	@Autowired
 	private StringRedisTemplate redis;
@@ -57,6 +58,25 @@ public class RedisServiceDefault implements RedisService {
 		} else {
 			log.debug("Removing email verification flag from redis for user: " + email);
 			redis.delete(USER_VERIFICATION_EMAIL_PREFIX + email);
+		}
+	}
+	
+	@Override
+	public void flagVerifiedEmail(String email, Boolean verified, boolean setFlag) {
+		if (setFlag) {
+			log.debug("Setting email verified flag on redis for user: " + email);
+			try {
+				redis.opsForValue().set(USER_VERIFIED_EMAIL_PREFIX + email, verified.toString());
+				redis.expire(USER_VERIFIED_EMAIL_PREFIX + email, EXPIRATION_TIME_1_MINUTE_MILLIS, TimeUnit.MILLISECONDS);
+			} catch (Exception e) {
+				log.error("Email verified flag FAILED: " + e.getMessage(), e.getCause());
+				
+				// in case the first operation went through and second failed, try to delete it
+				redis.delete(USER_VERIFIED_EMAIL_PREFIX + email);
+			}
+		} else {
+			log.debug("Removing email verified flag from redis for user: " + email);
+			redis.delete(USER_VERIFIED_EMAIL_PREFIX + email);
 		}
 	}
 
