@@ -1,5 +1,7 @@
 package app.web;
 
+import java.util.Comparator;
+
 import org.json.simple.JSONArray;
 import org.json.simple.JSONObject;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -13,6 +15,7 @@ import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 
 import app.domain.entities.Post;
+import app.domain.wrappers.PostWrapper;
 import app.enums.LocationType;
 import app.service.post.PostService;
 
@@ -54,6 +57,8 @@ public class PostController {
 			for (Post aPost : this.postService.getPostsByLocation(locationId, type)) {
 				jsonArray.add(aPost);
 			}
+			jsonArray.sort(new PostComparator());
+			
 			JSONObject json = new JSONObject();
 			json.put("posts", jsonArray);
 			return new ResponseEntity<JSONObject>(json, HttpStatus.OK);
@@ -69,10 +74,32 @@ public class PostController {
 		return new ResponseEntity<JSONObject>(HttpStatus.BAD_REQUEST);
 	}
 	
-	@RequestMapping(value = "/post", method = RequestMethod.POST)
-	public ResponseEntity<JSONObject> savePost(@RequestBody Post aPost) {
-		JSONObject json = new JSONObject();
-		json.put("post", this.postService.save(aPost));
-		return new ResponseEntity<JSONObject>(json, HttpStatus.OK);
+	@RequestMapping(value = "/posts", method = RequestMethod.POST)
+	public ResponseEntity<JSONObject> savePost(@RequestBody PostWrapper payload) {
+		Post aPost = this.postService.save(payload.getPost());
+
+		if (aPost != null) {
+			JSONObject json = new JSONObject();
+			json.put("post", aPost);
+			return new ResponseEntity<JSONObject>(json, HttpStatus.OK);
+		} else {
+			return new ResponseEntity<JSONObject>(HttpStatus.NOT_FOUND);
+		}
+	}
+	
+	// helper methods
+	private class PostComparator implements Comparator<Post> {
+		
+		@Override
+	    public int compare(Post a, Post b) {
+	    	Long valA = a.getCreatedAt();
+	        Long valB = b.getCreatedAt();
+	        
+	        if (valA < valB)
+	            return 1;
+	        if (valA > valB)
+	            return -1;
+	        return 0;    
+	    }
 	}
 }

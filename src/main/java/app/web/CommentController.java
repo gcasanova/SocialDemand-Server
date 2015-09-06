@@ -1,7 +1,6 @@
 package app.web;
 
-
-
+import java.util.Comparator;
 import java.util.List;
 
 import org.json.simple.JSONArray;
@@ -17,6 +16,7 @@ import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 
 import app.domain.entities.Comment;
+import app.domain.wrappers.CommentWrapper;
 import app.service.comment.CommentService;
 
 @RestController
@@ -32,27 +32,29 @@ public class CommentController {
 		Comment mComment = this.commentService.getComment(id);
 		if (mComment == null)
 			return new ResponseEntity<JSONObject>(HttpStatus.NOT_FOUND);
-		
+
 		JSONObject json = new JSONObject();
 		json.put("comment", mComment);
 		return new ResponseEntity<JSONObject>(json, HttpStatus.OK);
 	}
-	
+
 	@RequestMapping(value = "/comments", method = RequestMethod.GET)
 	public ResponseEntity<JSONObject> readComments(@RequestParam("ids") List<Integer> ids) {
 		JSONArray jsonArray = new JSONArray();
 		for (Comment aComment : this.commentService.getComments(ids)) {
 			jsonArray.add(aComment);
 		}
+		jsonArray.sort(new CommentComparator());
+		
 		JSONObject json = new JSONObject();
 		json.put("comments", jsonArray);
 		return new ResponseEntity<JSONObject>(json, HttpStatus.OK);
 	}
-	
-	@RequestMapping(value = "/comment", method = RequestMethod.POST)
-	public ResponseEntity<JSONObject> saveComment(@RequestBody Comment aComment) {
-		aComment = this.commentService.save(aComment);
-		
+
+	@RequestMapping(value = "/comments", method = RequestMethod.POST)
+	public ResponseEntity<JSONObject> saveComment(@RequestBody CommentWrapper payload) {
+		Comment aComment = this.commentService.save(payload.getComment());
+
 		if (aComment != null) {
 			JSONObject json = new JSONObject();
 			json.put("comment", aComment);
@@ -60,5 +62,21 @@ public class CommentController {
 		} else {
 			return new ResponseEntity<JSONObject>(HttpStatus.NOT_FOUND);
 		}
+	}
+	
+	// helper methods
+	private class CommentComparator implements Comparator<Comment> {
+		
+		@Override
+	    public int compare(Comment a, Comment b) {
+	    	Long valA = a.getCreatedAt();
+	        Long valB = b.getCreatedAt();
+	        
+	        if (valA < valB)
+	            return 1;
+	        if (valA > valB)
+	            return -1;
+	        return 0;    
+	    }
 	}
 }
