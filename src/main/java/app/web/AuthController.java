@@ -13,6 +13,7 @@ import org.json.simple.parser.ParseException;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.data.redis.core.StringRedisTemplate;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
@@ -43,6 +44,15 @@ public class AuthController {
 	private final Logger log = LoggerFactory.getLogger(this.getClass());
 	
 	private static final long SEVEN_DAYS = 1000 * 60 * 60 * 24 * 7;
+	
+	@Value("${aws.host.public.dns}")
+	private String hostname;
+	
+	@Value("${aws.host.port}")
+	private String port;
+	
+	@Value("${aws.host.protocol}")
+	private String protocol;
 	
 	@Autowired
 	private SecureRandom random;
@@ -106,7 +116,7 @@ public class AuthController {
 		try {
 			if (this.userService.verifySignUpVerificationEmail(email, token)) {
 				try {
-					response.sendRedirect("http://localhost:4200/success"); // hardcoded ip (only for testing)
+					response.sendRedirect(protocol + "://" + hostname + ":" + port + "/success");
 				} catch (IOException e) {
 					log.error("Redirect to /login route after signup verification failed: " + e.getMessage(), e.getCause());
 				}
@@ -118,7 +128,7 @@ public class AuthController {
 		}
 		
 		try {
-			response.sendRedirect("http://localhost:4200/invalid"); // hardcoded ip (only for testing)
+			response.sendRedirect(protocol + "://" + hostname + ":" + port + "/invalid");
 		} catch (IOException e) {
 			log.error("Redirect to /invalid route after signup verification failed: " + e.getMessage(), e.getCause());
 		}
@@ -152,7 +162,7 @@ public class AuthController {
 		try {
 			if (this.userService.verifyPasswordResetVerificationEmail(email, token)) {
 				try {
-					response.sendRedirect("http://localhost:4200/reset"); // hardcoded ip (only for testing)
+					response.sendRedirect(protocol + "://" + hostname + ":" + port + "/reset");
 				} catch (IOException e) {
 					log.error("Redirect to /reset route after forgotten verification failed: " + e.getMessage(), e.getCause());
 				}
@@ -164,7 +174,7 @@ public class AuthController {
 		}
 		
 		try {
-			response.sendRedirect("http://localhost:4200/invalid"); // hardcoded ip (only for testing)
+			response.sendRedirect(protocol + "://" + hostname + ":" + port + "/invalid");
 		} catch (IOException e) {
 			log.error("Redirect to /invalid route after forgotten verification failed: " + e.getMessage(), e.getCause());
 		}
