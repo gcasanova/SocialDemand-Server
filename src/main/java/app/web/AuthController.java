@@ -45,13 +45,10 @@ public class AuthController {
 	
 	private static final long SEVEN_DAYS = 1000 * 60 * 60 * 24 * 7;
 	
-	@Value("${aws.host.public.dns}")
+	@Value("${aws.host.public.dns.client}")
 	private String hostname;
 	
-	@Value("${aws.host.port}")
-	private String port;
-	
-	@Value("${aws.host.protocol}")
+	@Value("${aws.host.protocol.client}")
 	private String protocol;
 	
 	@Autowired
@@ -116,7 +113,7 @@ public class AuthController {
 		try {
 			if (this.userService.verifySignUpVerificationEmail(email, token)) {
 				try {
-					response.sendRedirect(protocol + "://" + hostname + ":" + port + "/success");
+					response.sendRedirect(protocol + "://" + hostname);
 				} catch (IOException e) {
 					log.error("Redirect to /login route after signup verification failed: " + e.getMessage(), e.getCause());
 				}
@@ -128,7 +125,7 @@ public class AuthController {
 		}
 		
 		try {
-			response.sendRedirect(protocol + "://" + hostname + ":" + port + "/invalid");
+			response.sendRedirect(protocol + "://" + hostname + "/invalid");
 		} catch (IOException e) {
 			log.error("Redirect to /invalid route after signup verification failed: " + e.getMessage(), e.getCause());
 		}
@@ -162,7 +159,7 @@ public class AuthController {
 		try {
 			if (this.userService.verifyPasswordResetVerificationEmail(email, token)) {
 				try {
-					response.sendRedirect(protocol + "://" + hostname + ":" + port + "/reset");
+					response.sendRedirect(protocol + "://" + hostname);
 				} catch (IOException e) {
 					log.error("Redirect to /reset route after forgotten verification failed: " + e.getMessage(), e.getCause());
 				}
@@ -174,7 +171,7 @@ public class AuthController {
 		}
 		
 		try {
-			response.sendRedirect(protocol + "://" + hostname + ":" + port + "/invalid");
+			response.sendRedirect(protocol + "://" + hostname + "/invalid");
 		} catch (IOException e) {
 			log.error("Redirect to /invalid route after forgotten verification failed: " + e.getMessage(), e.getCause());
 		}

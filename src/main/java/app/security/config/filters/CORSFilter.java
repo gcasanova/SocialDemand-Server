@@ -23,7 +23,7 @@ public class CORSFilter extends GenericFilterBean {
 		
 		response.addHeader("Access-Control-Allow-Origin", "*");
 		response.addHeader("Access-Control-Allow-Methods", "GET, POST, PUT, DELETE");
-		response.addHeader("Access-Control-Allow-Headers", "X-Requested-With,Origin,Content-Type, Accept");
+		response.addHeader("Access-Control-Allow-Headers", "X-Requested-With,Origin,Content-Type, Accept,Authorization");
 		
 		if (request.getMethod().equals("OPTIONS")) {
 			response.setStatus(HttpStatus.SC_ACCEPTED); // if OPTIONS method, respond allowed
